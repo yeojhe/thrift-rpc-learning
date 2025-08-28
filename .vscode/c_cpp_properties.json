@@ -5,6 +5,7 @@
       "includePath": [
         "${workspaceFolder}/thrift-kv/if/gen-cpp2",
         "${workspaceFolder}/thrift-kv/cpp",
+        "${workspaceFolder}/thrift-kv/*",
         "/usr/include",
         "/usr/include/c++/15.2.1"
         // "/usr/include/x86_64-linux-gnu"
