@@ -54,3 +54,64 @@ target_link_libraries(gen_smoke PRIVATE
   pthread
   dl
 )
+
+
+# Collect generated sources (already used for gen_smoke)
+file(GLOB GEN_SRCS "../if/gen-cpp2/*.cpp")
+
+# --- Server target ---
+add_executable(kv_server
+  ${GEN_SRCS}
+  kv_handler.cpp
+  server.cpp
+)
+
+target_include_directories(kv_server PRIVATE
+  ..
+  /usr/include
+)
+
+target_compile_definitions(kv_server PRIVATE GLOG_USE_GLOG_EXPORT)
+
+target_link_libraries(kv_server PRIVATE
+  ${THRIFT_CPP2_LIB}
+  ${THRIFT_PROTOCOL_LIB}
+  ${THRIFT_METADATA_LIB}
+  ${THRIFT_ASYNC_LIB}
+  ${THRIFT_TRANSPORT_LIB}
+  ${THRIFT_RPCMETADATA_LIB}
+  ${FOLLY_LIB}
+  ${BOOST_CONTEXT_LIB}
+  ${GFLAGS_LIB}
+  ${GLOG_LIB}
+  pthread
+  dl
+)
+
+# --- Client target ---
+add_executable(kv_client
+  ${GEN_SRCS}
+  client.cpp
+)
+
+target_include_directories(kv_client PRIVATE
+  ..
+  /usr/include
+)
+
+target_compile_definitions(kv_client PRIVATE GLOG_USE_GLOG_EXPORT)
+
+target_link_libraries(kv_client PRIVATE
+  ${THRIFT_CPP2_LIB}
+  ${THRIFT_PROTOCOL_LIB}
+  ${THRIFT_METADATA_LIB}
+  ${THRIFT_ASYNC_LIB}
+  ${THRIFT_TRANSPORT_LIB}
+  ${THRIFT_RPCMETADATA_LIB}
+  ${FOLLY_LIB}
+  ${BOOST_CONTEXT_LIB}
+  ${GFLAGS_LIB}
+  ${GLOG_LIB}
+  pthread
+  dl
+)
