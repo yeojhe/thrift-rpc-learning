@@ -2,6 +2,7 @@
 #include <memory>
 #include <thread>
 
+#include <folly/init/Init.h>
 #include <folly/io/async/ScopedEventBaseThread.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <thrift/lib/cpp2/server/Cpp2ConnContext.h>
@@ -10,13 +11,17 @@
 
 #include "kv_handler.h"
 
-// bring ThriftServer into the current namespace for brevity to avoid writing it repeatedly
+// bring ThriftServer into the current namespace for brevity (using-declaration, not a typedef)
 using apache::thrift::ThriftServer;
 
 // entry point, argc/argv allow passing a port as the first CLI argument
 // argc is an int count of arguments
 // argv is an array of C strings (char*), with argv[argc] == nullptr
 int main(int argc, char** argv) {
+    // Folly/Thrift global initialization MUST happen before any Folly singletons
+    // are touched. This sets up gfLags/gLog and completes singleton registration
+    folly::Init follyInit(&argc, &argv);
+
     // default TCP port unless provided
     uint16_t port = 9090;
     // if an argument is provided, parse it
