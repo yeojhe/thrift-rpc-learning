@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cmake: build Debug",
+      "type": "shell",
+      "command": "cmake --build ${workspaceFolder}/thrift-kv/cpp/build --config Debug -j",
+      "problemMatcher": []
+    },
+    {
+      "label": "cmake: configure Debug",
+      "type": "shell",
+      "command": "cmake -S ${workspaceFolder}/thrift-kv/cpp -B ${workspaceFolder}/thrift-kv/cpp/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+      "problemMatcher": []
+    }
+  ]
+}

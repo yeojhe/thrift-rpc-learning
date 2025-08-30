@@ -1,0 +1,55 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "kv_server (gdb, wait at entry)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/thrift-kv/cpp/build/kv_server",
+      "args": ["9090"],
+      "cwd": "${workspaceFolder}/thrift-kv/cpp",
+      "MIMode": "gdb",
+      "externalConsole": false,
+      "stopAtEntry": true,
+      "environment": [
+        { "name": "GLOG_logtostderr", "value": "1" }
+      ],
+      "preLaunchTask": "cmake: build Debug",
+      "setupCommands": [
+        { "text": "-enable-pretty-printing", "description": "Enable pretty printing" }
+      ]
+    },
+    {
+      "name": "kv_client (gdb)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/thrift-kv/cpp/build/kv_client",
+      "args": ["9090"],
+      "cwd": "${workspaceFolder}/thrift-kv/cpp",
+      "MIMode": "gdb",
+      "externalConsole": false,
+      "stopAtEntry": false,
+      "preLaunchTask": "cmake: build Debug",
+      "setupCommands": [
+        { "text": "-enable-pretty-printing", "description": "Enable pretty printing" }
+      ]
+    },
+    {
+      "name": "Attach to kv_server",
+      "program": "${workspaceFolder}/thrift-kv/cpp/build/kv_server",
+      "type": "cppdbg",
+      "request": "attach",
+      "processId": "${command:pickProcess}",
+      "MIMode": "gdb",
+      "setupCommands": [
+        { "text": "-enable-pretty-printing", "description": "Enable pretty printing" }
+      ]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Start server then run client",
+      "configurations": ["kv_server (gdb, wait at entry)", "kv_client (gdb)"]
+    }
+  ]
+}
