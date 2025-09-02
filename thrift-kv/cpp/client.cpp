@@ -1,5 +1,7 @@
 #include <iostream>
 #include <memory>
+#include <string>
+#include <cctype>
 
 #include <folly/init/Init.h>
 #include <folly/io/async/EventBase.h>
@@ -9,49 +11,42 @@
 #include "../if/gen-cpp2/KeyValueStoreAsyncClient.h"
 #include "../if/gen-cpp2/KeyValue_types.h"
 
-
 int main(int argc, char** argv) {
-    folly::Init follyInit(&argc, &argv);
+  folly::Init follyInit(&argc, &argv);
 
-    // default port, can be overwritten via CLI
-    const char* host = "127.0.0.1";
-    uint16_t port = 9090;
-    if (argc > 1) port = static_cast<uint16_t>(std::stoi(argv[1]));
+  const char* host = "127.0.0.1";
+  uint16_t port = (argc >= 2 && std::isdigit(static_cast<unsigned char>(argv[1][0])))
+                    ? static_cast<uint16_t>(std::stoi(argv[1])) : 9090;
+  int argi = (argc >= 2 && std::isdigit(static_cast<unsigned char>(argv[1][0]))) ? 2 : 1;
+  if (argc - argi < 2) { std::cerr << "Usage:\n  " << argv[0] << " [port] put <k> <v>\n  "
+                                   << argv[0] << " [port] get <k>\n"; return 2; }
 
-    // create an EventBase to run the client's async callbacks on this thread
-    folly::EventBase evb;
+  std::string cmd = argv[argi++];
 
-    // create a connected AsyncSocket bound to the EventBase
-    auto sock = folly::AsyncSocket::UniquePtr(
-        new folly::AsyncSocket(&evb, folly::SocketAddress(host, port))
-    );
+  folly::EventBase evb;  // same thread
+  auto sock = folly::AsyncSocket::UniquePtr(
+      new folly::AsyncSocket(&evb, folly::SocketAddress(host, port)));
+  auto channel = apache::thrift::RocketClientChannel::newChannel(std::move(sock));
+  channel->setTimeout(std::chrono::milliseconds{30000}.count());
 
-    // build a Rocket client channel over the socket
-    auto channel = apache::thrift::RocketClientChannel::newChannel(std::move(sock));
+  kv::KeyValueStoreAsyncClient client(std::move(channel));
 
-    // construct the generated async client using that channel
-    kv::KeyValueStoreAsyncClient client(std::move(channel));
-
-    // prepare a PutRequest (field_ref accessors; assign underlying strings)
-    kv::PutRequest put;
-    put.key() = "greeting";
-    put.value() = "hello thrift rpc";
-
-    // // async put/get via SemiFutures
-    // // fire and forget result
-    // client.semifuture_put(std::move(put)).via(&evb).get();
-
-    // auto getFut = client.semifuture_get("greeting");
-    // // std::unique_ptr<kv::GetResponse>
-    // auto resp = std::move(getFut).via(&evb).get();
-
-    client.sync_put(std::move(put));
-
-    kv::GetResponse resp;
-    client.sync_get(resp, "greeting");
-
-    std::cout << "[client] found=" << (*resp.found() ? "true" : "false")
-              << " value=\"" << *resp.value() << "\"\n";
-
-    return 0;
+  if (cmd == "put") {
+    if (argc - argi != 2) return 2;
+    kv::PutRequest req;
+    req.key() = argv[argi++];
+    req.value() = argv[argi++];
+    client.sync_put(std::move(req));
+    std::cout << "[client] OK\n";
+  } else if (cmd == "get") {
+    if (argc - argi != 1) return 2;
+    kv::GetResponse out;
+    client.sync_get(out, argv[argi++]);
+    if (*out.found()) std::cout << *out.value() << "\n";
+    else { std::cerr << "[client] NOT FOUND\n"; return 1; }
+  } else {
+    return 2;
+  }
+  return 0;
 }
+

@@ -1,3 +1,7 @@
 {
-    "cmake.sourceDirectory": "/home/yeoj/code/rpc-learning/thrift-kv/cpp"
+    "cmake.sourceDirectory": "/home/yeoj/code/rpc-learning/thrift-kv/cpp",
+    "files.associations": {
+        "*.embeddedhtml": "html",
+        "string": "cpp"
+    }
 }
